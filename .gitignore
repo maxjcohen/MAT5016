@@ -1,2 +1,8 @@
 # Jupyter checkpoints
 .ipynb_checkpoints
+
+# Python compiled files
+*.pyc
+
+# Datas
+data
