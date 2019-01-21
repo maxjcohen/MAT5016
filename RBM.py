@@ -4,15 +4,15 @@ from matplotlib import pyplot as plt
 
 class RBM():
     def __init__(self, q, n):
-        self.W = np.random.normal(scale=0.01, size=(n, q))
-        self.a = np.zeros(n)
-        self.b = np.zeros(q)
+        self.W = np.random.normal(scale=0.01, size=(q, n)) * 0.01
+        self.a = np.zeros((1, n))
+        self.b = np.zeros((1, q))
         
     def forward(self, X):
-        return self.sigmoid(np.dot(X, self.W) + self.b)
+        return self.sigmoid(np.dot(X, self.W.T) + self.b)
     
     def backward(self, H):
-        return self.sigmoid(np.dot(H, self.W.T) + self.a)
+        return self.sigmoid(np.dot(H, self.W) + self.a)
     
     def train(self, X, epochs=5, lr=1e-3):
         m = len(X)
@@ -41,9 +41,9 @@ class RBM():
             db = np.sum(p_h_v_0 - p_h_v_1, axis=0)
 
             # Update weights
-            self.W += lr * dw
-            self.a += lr * da
-            self.b += lr * db
+            self.W += lr * dw.T
+            self.a += lr * da.T
+            self.b += lr * db.T
             
         plt.plot(losses)
             
