@@ -2,17 +2,26 @@ import numpy as np
 from tqdm import tqdm
 from matplotlib import pyplot as plt
 
+from utils import softmax, sigmoid
+
 class RBM():
-    def __init__(self, q, n):
+    def __init__(self, q, n, activation="sigmoid"):
         self.W = np.random.normal(scale=0.01, size=(q, n)) * 0.01
         self.a = np.zeros((1, n))
         self.b = np.zeros((1, q))
         
+        if activation == "sigmoid":
+            self.activation = sigmoid
+        elif activation == "softmax":
+            self.activation = softmax
+        else:
+            raise NameError(f"Activation function {activation} not recognized.")
+        
     def forward(self, X):
-        return self.sigmoid(np.dot(X, self.W.T) + self.b)
+        return self.activation(np.dot(X, self.W.T) + self.b)
     
     def backward(self, H):
-        return self.sigmoid(np.dot(H, self.W) + self.a)
+        return self.activation(np.dot(H, self.W) + self.a)
     
     def train(self, X, epochs=5, lr=1e-3):
         m = len(X)
@@ -46,9 +55,3 @@ class RBM():
             self.b += lr * db.T
             
         plt.plot(losses)
-            
-    def generate_image(self, n_iter_gibs=3, n_images=5):
-        pass
-
-    def sigmoid(self, x):
-        return 1 / (1 + np.exp(-x))
