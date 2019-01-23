@@ -5,27 +5,23 @@ from RBM import RBM
 from DBN import DBN
 from utils import softmax
 
-def sigmoid(z):
-    return 1 / (1+np.exp(-z))
-
 class DNN(DBN):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        
-        self.L = len(self.layers)
-        
-    def forward(self, X):
-        # Return last layer output after sotfmax
-        return softmax(super().forward(X))
-    
+        self.layers[-1].activation = softmax
+            
     def forward_full(self, X):
         # Returns outputs for all hidden layers. Apply softmax on last layer.
         self.A = [X]
         for idx, layer in enumerate(self.layers[:-1]):
-            self.A.append(sigmoid(layer.forward(self.A[idx])))
-        self.A.append(softmax(self.layers[-1].forward(self.A[-1])))
+            self.A.append(layer.forward(self.A[idx]))
+        self.A.append(self.layers[-1].forward(self.A[-1]))
         
         return self.A[-1]
+    
+    def train(self, *args, **kwargs):
+        kwargs.setdefault('except_last', True)
+        return super().train(*args, **kwargs)
     
     def backpropagation(self, X, Y, lr=1e-3):
         m = X.shape[-1]
@@ -69,8 +65,7 @@ class DNN(DBN):
             Y_hat = self.forward(X)
             loss = self.compute_loss(Y, Y_hat)
             acc = self.compute_acc(Y, Y_hat)
-            if not e % 10:
-                print(f'Loss: {np.round(loss, 3)}\tAcc: {np.round(acc, 3)}')
+            print(f'Loss: {np.round(loss, 3)}\tAcc: {np.round(acc, 3)}')
             hist_loss.append(loss)
         plt.plot(hist_loss)
         
