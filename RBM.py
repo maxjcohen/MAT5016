@@ -25,7 +25,7 @@ class RBM():
     
     def train(self, X, epochs=5, lr=1e-3, batch_size=32):
         m = len(X)
-        losses = np.zeros(epochs)
+        losses = []
         
         num_batches = (m + batch_size - 1) // batch_size
         idx_batches = [(i * batch_size, min(m-1, (i + 1) * batch_size)) for i in range(num_batches)]
@@ -33,8 +33,23 @@ class RBM():
         for e in tqdm(range(epochs)):
             for idx_b, idx_e in idx_batches:
                 self.backward_forward(X[idx_b:idx_e, ...], lr=lr)
+            losses.append( self.loss(X) )
             
-        plt.plot(losses)
+        plt.plot(range(epochs), losses)
+        
+    def loss(self, X):
+        v_0 = X
+        
+        # Sample h_0
+        p_h_v_0 = self.forward(v_0)
+        h_0 = p_h_v_0 >= np.random.random(p_h_v_0.shape)
+
+        # Sample v_1
+        p_v_h_0 = self.backward(h_0)
+        v_1 = p_v_h_0 >= np.random.random(p_v_h_0.shape)
+
+        # Compute mse
+        return ((v_0 - v_1) ** 2).mean()
         
     def backward_forward(self, X, lr=1e-3):
         v_0 = X
@@ -46,9 +61,6 @@ class RBM():
         # Sample v_1
         p_v_h_0 = self.backward(h_0)
         v_1 = p_v_h_0 >= np.random.random(p_v_h_0.shape)
-
-        # Loss
-#         losses[epoch] = ((v_0 - v_1) ** 2).mean()
 
         p_h_v_1 = self.forward(v_1)
 
